@@ -5,12 +5,19 @@ import java.net.Socket;
 
 public class Main {
     public static void main(String[] args) {
-        byte b = 0x65; //hexadecimal address of the address you want to receive data from
-        int a = receiveData(b);
-        System.out.println(a);
+        byte b = 0x64; // hexadecimal address of the address you want to receive data from
+
+        while (true) {
+            int a = receiveData(b);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public static int receiveData(byte adress){
+    public static int receiveData(byte address) {
         int value = 0;
         byte[] data = {
                 0x00, 0x01, // transaction identifier
@@ -18,7 +25,7 @@ public class Main {
                 0x00, 0x06, // PDU length
                 0x11,       // Address (17 decimals)
                 0x03,       // read register command
-                0x00, adress, // from the entered register
+                0x00, address, // from the entered register
                 0x00, 0x01  // Only 1 register (2 bytes)
         };
 
