@@ -12,7 +12,7 @@ public class Main {
                 0x00, 0x06, // PDU uzunluğu
                 0x11,       // Adres (17 decimal)
                 0x03,       // Register oku komutu
-                0x00, 0x65, // 0 ıncı registerdan itibaren
+                0x00, 0x64, // 0 ıncı registerdan itibaren
                 0x00, 0x01  // Sadece 1 register (2 byte)
         };
 
@@ -31,7 +31,8 @@ public class Main {
 
                     if (bytesRead >= expectedDataLength + 9) { // Gelen veri, beklenen veri boyutuna eşit veya daha büyük mü kontrol edin
                         byte[] gelenDeger = new byte[]{rData[10], rData[9]}; // Sırası değiştirildi
-                        short deger = ByteBuffer.wrap(gelenDeger).getShort();
+                        //short deger = (short) (ByteBuffer.wrap(gelenDeger).getShort() & 0xFFFF);
+                        int deger = ((gelenDeger[1] & 0xFF) << 8) | (gelenDeger[0] & 0xFF);
                         System.out.println("Gelen Değer: " + deger);
                     } else {
                         System.out.println("Eksik veri alındı.");
