@@ -5,24 +5,24 @@ import java.net.Socket;
 
 public class Main {
     public static void main(String[] args) {
-        byte b = 0x65;
+        byte b = 0x65; //hexadecimal address of the address you want to receive data from
         int a = receiveData(b);
         System.out.println(a);
     }
 
     public static int receiveData(byte adress){
-        int deger = 0;
+        int value = 0;
         byte[] data = {
-                0x00, 0x01, // işlem tanımlayıcı
-                0x00, 0x00, // Protokol Tanımlaycı (modbus)
-                0x00, 0x06, // PDU uzunluğu
-                0x11,       // Adres (17 decimal)
-                0x03,       // Register oku komutu
-                0x00, adress, // 0 ıncı registerdan itibaren
-                0x00, 0x01  // Sadece 1 register (2 byte)
+                0x00, 0x01, // transaction identifier
+                0x00, 0x00, // Protocol Identifier (modbus)
+                0x00, 0x06, // PDU length
+                0x11,       // Address (17 decimals)
+                0x03,       // read register command
+                0x00, adress, // from the entered register
+                0x00, 0x01  // Only 1 register (2 bytes)
         };
 
-        byte[] rData = new byte[12]; // C#'daki uzunluğa uygun olarak artırıldı
+        byte[] rData = new byte[12];
         try (Socket socket = new Socket("192.168.1.5", 502)) {
             if (socket.isConnected()) {
                 OutputStream outputStream = socket.getOutputStream();
@@ -32,24 +32,23 @@ public class Main {
                 int bytesRead = inputStream.read(rData);
 
                 if (bytesRead >= 9) {
-                    int pduLength = rData[8] & 0xFF; // PDU uzunluğu alanını okuyun
-                    int expectedDataLength = pduLength - 2; // PDU uzunluğundan 2 byte'lık işlem tanımlayıcıyı çıkarın
+                    int pduLength = rData[8] & 0xFF; // Read the PDU length field
+                    int expectedDataLength = pduLength - 2; // Subtract 2 bytes of process identifier from PDU length
 
-                    if (bytesRead >= expectedDataLength + 9) { // Gelen veri, beklenen veri boyutuna eşit veya daha büyük mü kontrol edin
-                        byte[] gelenDeger = new byte[]{rData[10], rData[9]}; // Sırası değiştirildi
-                        //short deger = (short) (ByteBuffer.wrap(gelenDeger).getShort() & 0xFFFF);
-                        deger = ((gelenDeger[1] & 0xFF) << 8) | (gelenDeger[0] & 0xFF);
-                        System.out.println("Gelen Değer: " + deger);
+                    if (bytesRead >= expectedDataLength + 9) { // Check if the incoming data is greater than or equal to the expected data size
+                        byte[] incomingValue = new byte[]{rData[10], rData[9]}; // Order changed
+                        value = ((incomingValue[1] & 0xFF) << 8) | (incomingValue[0] & 0xFF);
+                        System.out.println("Incoming Value: " + value);
                     } else {
-                        System.out.println("Eksik veri alındı.");
+                        System.out.println("Missing data received.");
                     }
                 } else {
-                    System.out.println("Veri okunamadı veya eksik veri alındı.");
+                    System.out.println("Data could not be read or missing data was received.");
                 }
             }
         } catch (IOException e) {
-            System.out.println("Hata: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
-        return deger;
+        return value;
     }
 }
